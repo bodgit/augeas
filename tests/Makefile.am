@@ -74,6 +74,7 @@ lens_tests =			\
   lens-fstab.sh			\
   lens-fuse.sh			\
   lens-gdm.sh			\
+  lens-getcap.sh		\
   lens-group.sh			\
   lens-gshadow.sh			\
   lens-gtkbookmarks.sh			\
