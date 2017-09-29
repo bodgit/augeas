@@ -26,12 +26,15 @@ module Getcap =
   let empty      = Util.empty
 
   (* field must not contain ':' unless quoted or '\'-escaped  *)
+  let nfield     = /[^:\\\n#|]+/
+  (* let field      = /[^:\\\n]+/ *)
   let field      = /([^:\\\n]|\\\\.)+|[^:\n]*(\"[^\n]+\"[^:\n]*)+/
 
   let sep        = del /:([ \t]*\\\\\n[ \t]*:)?/ ":\\\n\t:"
-  let name       = [ label "name" . store field ]
+  let nsep       = Util.del_str "|"
+  let name       = [ label "name" . store nfield ]
   let capability = [ label "capability" . store field ]
-  let record     = [ label "record" . name . sep . capability . ( sep . capability )* . Sep.colon . eol ]
+  let record     = [ seq "record" . name . ( nsep . name )* . sep . capability . ( sep . capability )* . Sep.colon . eol ]
 
   let lns = ( empty | comment | record )*
 
