@@ -22,25 +22,26 @@ module Getcap =
 
   let eol        = Util.eol
 
-  let comment    = Util.comment
+  (* Comments cannot have any leading characters *)
+  let comment    = Util.comment_generic /#[ \t]*/ "# "
   let empty      = Util.empty
 
   (* field must not contain ':' unless quoted or '\'-escaped  *)
-  let nfield     = /[^:\\\n#|]+/
-  (* let field      = /[^:\\\n]+/ *)
-  let field      = /([^:\\\n]|\\\\.)+|[^:\n]*(\"[^\n]+\"[^:\n]*)+/
+  let nfield     = /[^#:\\\\\t\n|][^:\\\\\t\n|]*/
+  let cfield     = /[*!#@.%&]*[a-zA-Z0-9-]+[;]?([%^$#]?@|[%^$#=]("[^"]*"|([^:\\\\"^]|\\\\.|\\^)([^:\\\\^]|\\\\.|\\^|")*)?)?/
 
-  let sep        = del /:([ \t]*\\\\\n[ \t]*:)?/ ":\\\n\t:"
+  let csep       = del /:([ \t]*\\\\\n[ \t]*:)?/ ":\\\n\t:"
   let nsep       = Util.del_str "|"
   let name       = [ label "name" . store nfield ]
-  let capability = [ label "capability" . store field ]
-  let record     = [ seq "record" . name . ( nsep . name )* . sep . capability . ( sep . capability )* . Sep.colon . eol ]
+  let capability = [ label "capability" . store cfield ]
+  let record     = [ seq "record" . name . ( nsep . name )* . csep . capability . ( csep . capability )* . Sep.colon . eol ]
 
   let lns = ( empty | comment | record )*
 
   let filter = incl "/etc/login.conf"
              . incl "/etc/printcap"
              . incl "/etc/rtadvd.conf"
+             . incl "/etc/termcap"
              . incl "/usr/share/misc/termcap"
              . Util.stdexcl
 
