@@ -180,6 +180,7 @@ lens_tests =			\
   lens-rmt.sh			\
   lens-rsyncd.sh		\
   lens-rsyslog.sh		\
+  lens-rtadvd.sh		\
   lens-rx.sh			\
   lens-samba.sh			\
   lens-securetty.sh     \
@@ -209,6 +210,7 @@ lens_tests =			\
   lens-syslog.sh		\
   lens-sysctl.sh		\
   lens-systemd.sh		\
+  lens-termcap.sh		\
   lens-thttpd.sh		\
   lens-tmpfiles.sh		\
   lens-trapperkeeper.sh		\

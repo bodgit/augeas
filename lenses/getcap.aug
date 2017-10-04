@@ -8,7 +8,6 @@ About: Reference
        - man 3 getcap
        - man 5 login.conf
        - man 5 printcap
-       - man 5 rtadvd.conf
        - man 5 termcap
 
 Each line represents a record consisting of a number of ':'-separated fields
@@ -20,29 +19,24 @@ split across multiple lines with '\'.
 module Getcap =
   autoload xfm
 
-  let eol        = Util.eol
-
   (* Comments cannot have any leading characters *)
-  let comment    = Util.comment_generic /#[ \t]*/ "# "
-  let empty      = Util.empty
+  let comment                = Util.comment_generic /#[ \t]*/ "# "
 
-  (* field must not contain ':' unless quoted or '\'-escaped  *)
-  let nfield     = /[^#:\\\\\t\n|][^:\\\\\t\n|]*/
-  let cfield     = /[*!#@.%&]*[a-zA-Z0-9-]+[;]?([%^$#]?@|[%^$#=]("[^"]*"|([^:\\\\"^]|\\\\.|\\^)([^:\\\\^]|\\\\.|\\^|")*)?)?/
+  let nfield                 = /[^#:\\\\\t\n|][^:\\\\\t\n|]*/
 
-  let csep       = del /:([ \t]*\\\\\n[ \t]*:)?/ ":\\\n\t:"
-  let nsep       = Util.del_str "|"
-  let name       = [ label "name" . store nfield ]
-  let capability = [ label "capability" . store cfield ]
-  let record     = [ seq "record" . name . ( nsep . name )* . csep . capability . ( csep . capability )* . Sep.colon . eol ]
+  (* field must not contain ':' *)
+  let cfield                 = /\.*[a-zA-Z0-9-]+([%^$#\\]?@|[%^$#\\=]([^:\\\\^]|\\\\[0-7]{1,3}|\\\\[bBcCeEfFnNrRtT\\^]|\^.)*)?/
 
-  let lns = ( empty | comment | record )*
+  let csep                   = del /:([ \t]*\\\\\n[ \t]*:)?/ ":\\\n\t:"
+  let nsep                   = Util.del_str "|"
+  let name                   = [ label "name" . store nfield ]
+  let capability (re:regexp) = [ label "capability" . store re ]
+  let record (re:regexp)     = [ label "record" . name . ( nsep . name )* . ( csep . capability re )* . Sep.colon . Util.eol ]
+
+  let lns = ( Util.empty | comment | record cfield )*
 
   let filter = incl "/etc/login.conf"
              . incl "/etc/printcap"
-             . incl "/etc/rtadvd.conf"
-             . incl "/etc/termcap"
-             . incl "/usr/share/misc/termcap"
              . Util.stdexcl
 
   let xfm = transform lns filter
